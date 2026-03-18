@@ -1,0 +1,4 @@
+interface:
+  display_name: "Proposal Humanize"
+  short_description: "Humanize and polish proposals"
+  default_prompt: "Use $proposal-humanize to rewrite a proposal using a reference document style while making it sound natural and human."
