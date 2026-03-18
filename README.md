@@ -5,14 +5,14 @@
 ### A growing home for reusable Codex skills
 
 [![Repo Stars](https://img.shields.io/github/stars/Tuner12/tys-skills?style=for-the-badge&logo=github&label=stars)](https://github.com/Tuner12/tys-skills/stargazers)
-[![GitHub stars](https://img.shields.io/github/stars/Tuner12/tys-skills?style=flat-square&logo=github&label=GitHub%20Stars)](https://github.com/Tuner12/tys-skills/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/Tuner12/tys-skills?style=flat-square&logo=github&label=GitHub%20Forks)](https://github.com/Tuner12/tys-skills/network/members)
-[![Last Commit](https://img.shields.io/github/last-commit/Tuner12/tys-skills?style=flat-square&logo=git&label=Last%20Commit)](https://github.com/Tuner12/tys-skills/commits/main)
-[![Top Language](https://img.shields.io/github/languages/top/Tuner12/tys-skills?style=flat-square&label=Top%20Language)](https://github.com/Tuner12/tys-skills)
-[![Repo Size](https://img.shields.io/github/repo-size/Tuner12/tys-skills?style=flat-square&label=Repo%20Size)](https://github.com/Tuner12/tys-skills)
+[![stars](https://img.shields.io/github/stars/Tuner12/tys-skills?logo=github&label=stars)](https://github.com/Tuner12/tys-skills/stargazers)
+[![forks](https://img.shields.io/github/forks/Tuner12/tys-skills?logo=github&label=forks)](https://github.com/Tuner12/tys-skills/network/members)
+[![last commit](https://img.shields.io/github/last-commit/Tuner12/tys-skills?logo=git&label=last%20commit)](https://github.com/Tuner12/tys-skills/commits/main)
+[![repo size](https://img.shields.io/github/repo-size/Tuner12/tys-skills?label=repo%20size)](https://github.com/Tuner12/tys-skills)
+[![top language](https://img.shields.io/github/languages/top/Tuner12/tys-skills?label=top%20language)](https://github.com/Tuner12/tys-skills)
 
-![Collection](https://img.shields.io/badge/Codex%20Skills-Collection-4f46e5?style=flat-square)
-![Status](https://img.shields.io/badge/Status-Active%20%26%20Growing-0f766e?style=flat-square)
+![codex skills collection](https://img.shields.io/badge/codex%20skills-collection-6d28d9)
+![status](https://img.shields.io/badge/status-active%20%26%20growing-0f766e)
 
 </div>
 
