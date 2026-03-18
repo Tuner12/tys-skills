@@ -39,7 +39,11 @@ The current focus is practical, reusable workflow skills rather than one-off pro
 tys-skills/
 ├── README.md
 └── skills/
-    └── proposal-humanize/
+    ├── proposal-humanize/
+        ├── SKILL.md
+        ├── agents/
+        └── references/
+    └── readme-styler/
         ├── SKILL.md
         ├── agents/
         └── references/
@@ -50,6 +54,7 @@ tys-skills/
 | Skill | Purpose | Status |
 | --- | --- | --- |
 | `proposal-humanize` | Rewrites business proposals using a reference proposal's structure, tone, and persuasive flow while removing generic AI-style phrasing | Active |
+| `readme-styler` | Designs polished GitHub README files with stronger hierarchy, visuals, badges, and repository storytelling | Active |
 
 ## Featured Skill
 
@@ -64,6 +69,18 @@ This skill is built for proposal work that needs more than cosmetic editing. It 
 - preserve actual scope, commitments, and commercial boundaries
 
 Path: `skills/proposal-humanize/`
+
+### `readme-styler`
+
+This skill is built for repositories that need a stronger first impression on GitHub. It helps:
+
+- redesign flat README files into clearer landing pages
+- choose better section order and visual hierarchy
+- add badges, callouts, tables, and repo maps without clutter
+- match README tone to the repository type
+- make a project look maintained, intentional, and easier to understand
+
+Path: `skills/readme-styler/`
 
 ## Design Principles
 

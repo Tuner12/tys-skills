@@ -1,0 +1,4 @@
+interface:
+  display_name: "README Styler"
+  short_description: "Design polished GitHub READMEs"
+  default_prompt: "Use $readme-styler to turn this repository README into a polished, visually strong GitHub landing page."
