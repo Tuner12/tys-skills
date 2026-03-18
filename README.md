@@ -5,12 +5,14 @@
 ### A growing home for reusable Codex skills
 
 [![Repo Stars](https://img.shields.io/github/stars/Tuner12/tys-skills?style=for-the-badge&logo=github&label=stars)](https://github.com/Tuner12/tys-skills/stargazers)
-[![Last Commit](https://img.shields.io/github/last-commit/Tuner12/tys-skills?style=for-the-badge&logo=git&label=last%20commit)](https://github.com/Tuner12/tys-skills/commits/main)
-[![Repo Size](https://img.shields.io/github/repo-size/Tuner12/tys-skills?style=for-the-badge&logo=files&label=repo%20size)](https://github.com/Tuner12/tys-skills)
-[![Top Language](https://img.shields.io/github/languages/top/Tuner12/tys-skills?style=for-the-badge&label=top%20language)](https://github.com/Tuner12/tys-skills)
+[![GitHub stars](https://img.shields.io/github/stars/Tuner12/tys-skills?style=flat-square&logo=github&label=GitHub%20Stars)](https://github.com/Tuner12/tys-skills/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/Tuner12/tys-skills?style=flat-square&logo=github&label=GitHub%20Forks)](https://github.com/Tuner12/tys-skills/network/members)
+[![Last Commit](https://img.shields.io/github/last-commit/Tuner12/tys-skills?style=flat-square&logo=git&label=Last%20Commit)](https://github.com/Tuner12/tys-skills/commits/main)
+[![Top Language](https://img.shields.io/github/languages/top/Tuner12/tys-skills?style=flat-square&label=Top%20Language)](https://github.com/Tuner12/tys-skills)
+[![Repo Size](https://img.shields.io/github/repo-size/Tuner12/tys-skills?style=flat-square&label=Repo%20Size)](https://github.com/Tuner12/tys-skills)
 
-![Skills Banner](https://img.shields.io/badge/Codex-Skills%20Collection-111827?style=for-the-badge&logo=openai&logoColor=white&labelColor=0f172a)
-![Status](https://img.shields.io/badge/status-active%20and%20growing-2563eb?style=for-the-badge)
+![Collection](https://img.shields.io/badge/Codex%20Skills-Collection-4f46e5?style=flat-square)
+![Status](https://img.shields.io/badge/Status-Active%20%26%20Growing-0f766e?style=flat-square)
 
 </div>
 
