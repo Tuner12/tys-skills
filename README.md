@@ -5,8 +5,8 @@
 ### A growing home for reusable Codex skills
 
 [![Repo Stars](https://img.shields.io/github/stars/Tuner12/tys-skills?style=for-the-badge&logo=github&label=stars)](https://github.com/Tuner12/tys-skills/stargazers)
-[![stars](https://img.shields.io/github/stars/Tuner12/tys-skills?logo=github&label=stars)](https://github.com/Tuner12/tys-skills/stargazers)
-[![forks](https://img.shields.io/github/forks/Tuner12/tys-skills?logo=github&label=forks)](https://github.com/Tuner12/tys-skills/network/members)
+[![GitHub Stars](https://img.shields.io/github/stars/Tuner12/tys-skills?labelColor=2f353d&color=4c566a)](https://github.com/Tuner12/tys-skills/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/Tuner12/tys-skills?labelColor=2f353d&color=4c566a)](https://github.com/Tuner12/tys-skills/network/members)
 [![last commit](https://img.shields.io/github/last-commit/Tuner12/tys-skills?logo=git&label=last%20commit)](https://github.com/Tuner12/tys-skills/commits/main)
 [![repo size](https://img.shields.io/github/repo-size/Tuner12/tys-skills?label=repo%20size)](https://github.com/Tuner12/tys-skills)
 [![top language](https://img.shields.io/github/languages/top/Tuner12/tys-skills?label=top%20language)](https://github.com/Tuner12/tys-skills)
