@@ -4,7 +4,6 @@
 
 ### A growing home for reusable Codex skills
 
-[![Repo Stars](https://img.shields.io/github/stars/Tuner12/tys-skills?style=for-the-badge&logo=github&label=stars)](https://github.com/Tuner12/tys-skills/stargazers)
 [![GitHub Stars](https://img.shields.io/github/stars/Tuner12/tys-skills?labelColor=2f353d&color=4c566a)](https://github.com/Tuner12/tys-skills/stargazers)
 [![GitHub Forks](https://img.shields.io/github/forks/Tuner12/tys-skills?labelColor=2f353d&color=4c566a)](https://github.com/Tuner12/tys-skills/network/members)
 [![last commit](https://img.shields.io/github/last-commit/Tuner12/tys-skills?logo=git&label=last%20commit)](https://github.com/Tuner12/tys-skills/commits/main)
