@@ -1,16 +1,95 @@
+<div align="center">
+
 # tys's skills
 
-This repository stores reusable Codex skills in one place so new skills can be added over time without changing the overall layout.
+### A growing home for reusable Codex skills
 
-## Structure
+[![Repo Stars](https://img.shields.io/github/stars/Tuner12/tys-skills?style=for-the-badge&logo=github&label=stars)](https://github.com/Tuner12/tys-skills/stargazers)
+[![Last Commit](https://img.shields.io/github/last-commit/Tuner12/tys-skills?style=for-the-badge&logo=git&label=last%20commit)](https://github.com/Tuner12/tys-skills/commits/main)
+[![Repo Size](https://img.shields.io/github/repo-size/Tuner12/tys-skills?style=for-the-badge&logo=files&label=repo%20size)](https://github.com/Tuner12/tys-skills)
+[![Top Language](https://img.shields.io/github/languages/top/Tuner12/tys-skills?style=for-the-badge&label=top%20language)](https://github.com/Tuner12/tys-skills)
 
-- `skills/`: one folder per skill
-- Each skill contains its own `SKILL.md` and optional `agents/`, `references/`, `scripts/`, or `assets/`
+![Skills Banner](https://img.shields.io/badge/Codex-Skills%20Collection-111827?style=for-the-badge&logo=openai&logoColor=white&labelColor=0f172a)
+![Status](https://img.shields.io/badge/status-active%20and%20growing-2563eb?style=for-the-badge)
+
+</div>
+
+> [!NOTE]
+> This repository is designed as a long-term skill library, not a single-skill dump. New Codex skills can be added over time under a consistent structure.
+
+> [!TIP]
+> If a skill is useful enough to reuse twice, it belongs here.
+
+## Overview
+
+`tys's skills` collects self-contained Codex skills in one place so they can be versioned, improved, and extended over time. Each skill is packaged in its own directory and can include its own `SKILL.md`, references, scripts, assets, and agent metadata.
+
+The current focus is practical, reusable workflow skills rather than one-off prompts.
+
+## Highlights
+
+- Reusable multi-skill repository structure
+- Self-contained skill folders for cleaner maintenance
+- Ready to grow into a broader personal skill library
+- Includes a proposal rewriting and humanization skill built for real client-facing work
+
+## Repository Layout
+
+```text
+tys-skills/
+├── README.md
+└── skills/
+    └── proposal-humanize/
+        ├── SKILL.md
+        ├── agents/
+        └── references/
+```
 
 ## Current Skills
 
-- `proposal-humanize`: rewrite, polish, and humanize business proposals using a reference proposal as a style model
+| Skill | Purpose | Status |
+| --- | --- | --- |
+| `proposal-humanize` | Rewrites business proposals using a reference proposal's structure, tone, and persuasive flow while removing generic AI-style phrasing | Active |
+
+## Featured Skill
+
+### `proposal-humanize`
+
+This skill is built for proposal work that needs more than cosmetic editing. It helps:
+
+- infer style from a reference proposal
+- restructure weak draft sections
+- tighten business logic and persuasive flow
+- remove generic, templated, or AI-sounding prose
+- preserve actual scope, commitments, and commercial boundaries
+
+Path: `skills/proposal-humanize/`
+
+## Design Principles
+
+- One folder per skill
+- Keep each skill self-contained
+- Prefer reusable workflow logic over ad hoc prompt fragments
+- Preserve room for references, scripts, and assets as the library grows
 
 ## Adding More Skills
 
-Add each new skill under `skills/<skill-name>/` and keep every skill self-contained.
+Add new skills under `skills/<skill-name>/` and keep each one independently usable. A typical skill can include:
+
+- `SKILL.md`
+- `agents/openai.yaml`
+- `references/`
+- `scripts/`
+- `assets/`
+
+## Roadmap
+
+- Add more writing and document-oriented skills
+- Expand the repository into a broader personal Codex toolkit
+- Keep improving skill quality based on real usage
+
+---
+
+<div align="center">
+Built as a living Codex skill library for repeatable workflows.
+</div>
