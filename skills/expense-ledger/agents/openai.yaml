@@ -1,0 +1,4 @@
+interface:
+  display_name: "Expense Ledger"
+  short_description: "Track expenses with charts"
+  default_prompt: "Use $expense-ledger to record expenses, auto-classify them, detect duplicates, and regenerate a readable ledger dashboard."

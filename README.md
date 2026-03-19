@@ -44,6 +44,11 @@ tys-skills/
         ├── SKILL.md
         ├── agents/
         └── references/
+    ├── expense-ledger/
+        ├── SKILL.md
+        ├── agents/
+        ├── references/
+        └── scripts/
     └── readme-styler/
         ├── SKILL.md
         ├── agents/
@@ -55,6 +60,7 @@ tys-skills/
 | Skill | Purpose | Status |
 | --- | --- | --- |
 | `proposal-humanize` | Rewrites business proposals using a reference proposal's structure, tone, and persuasive flow while removing generic AI-style phrasing | Active |
+| `expense-ledger` | Maintains a categorized expense ledger with duplicate checks and auto-generated Markdown and HTML dashboards | Active |
 | `readme-styler` | Designs polished GitHub README files with stronger hierarchy, visuals, badges, and repository storytelling | Active |
 
 ## Featured Skill
@@ -82,6 +88,18 @@ This skill is built for repositories that need a stronger first impression on Gi
 - make a project look maintained, intentional, and easier to understand
 
 Path: `skills/readme-styler/`
+
+### `expense-ledger`
+
+This skill is built for ongoing personal bookkeeping rather than one-off notes. It helps:
+
+- record expenses from natural-language input
+- auto-classify entries into common spending categories
+- detect likely duplicate bills before writing
+- keep entries organized by day without losing a single source of truth
+- generate readable Markdown and HTML dashboards with common summary charts
+
+Path: `skills/expense-ledger/`
 
 ## Design Principles
 
