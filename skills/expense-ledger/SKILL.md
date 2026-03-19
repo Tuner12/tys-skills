@@ -1,6 +1,6 @@
 ---
 name: expense-ledger
-description: "Track personal expenses and maintain a structured ledger with automatic categorization, duplicate detection, daily insertion, and dashboard generation. Use when Codex needs to: (1) record a new expense from natural-language text, (2) update an existing expense ledger for a specific day, (3) classify spending into common categories automatically, (4) detect possible duplicate bills when date-time and amount match, or (5) generate readable Markdown and HTML summaries with common bookkeeping charts."
+description: "Track personal expenses and maintain a structured ledger with automatic categorization, duplicate detection, daily insertion, and dashboard generation. Use when Codex needs to: (1) record a new expense from natural-language text in English or Chinese, (2) handle Chinese bookkeeping requests such as '记账', '记一笔', '今天花了', '帮我记一下', '昨天买了', or '我花了多少钱', (3) update an existing expense ledger for a specific day, (4) classify spending into common categories automatically, (5) detect possible duplicate bills when the same day and amount both match, (6) run an interactive Chinese bookkeeping session where the user keeps entering bills one by one, or (7) generate readable Markdown and HTML summaries with common bookkeeping charts."
 ---
 
 # Expense Ledger
@@ -21,9 +21,10 @@ This split is the most practical tradeoff. CSV makes updates and deduplication r
 
 1. Use `scripts/ledger.py init` to create a new ledger folder if it does not exist.
 2. Use `scripts/ledger.py add` to record each new expense.
-3. Let the script auto-classify the expense unless the user explicitly provides a category.
-4. If the script reports a duplicate, do not silently write the row. Double check with the user first unless they explicitly want to force the insertion.
-5. After each successful write, regenerate the dashboard so the ledger stays current.
+3. Use `scripts/ledger.py chat` when the user wants to start bookkeeping mode first and then type expenses one by one.
+4. Let the script auto-classify the expense unless the user explicitly provides a category.
+5. If the script reports a duplicate, do not silently write the row. Treat same-day and same-amount entries as suspicious and double check first unless the user explicitly wants to force the insertion.
+6. After each successful write, regenerate the dashboard so the ledger stays current.
 
 ## Recommended Ledger Layout
 
@@ -62,6 +63,20 @@ python3 scripts/ledger.py add \
   --entry "2026-03-18 12:30 lunch with lab group 18.50"
 ```
 
+Add an expense from a more natural Chinese sentence:
+
+```bash
+python3 scripts/ledger.py add \
+  --ledger-dir ~/expense-ledger-data \
+  --entry "今天中午午饭 25元"
+```
+
+Start interactive bookkeeping mode:
+
+```bash
+python3 scripts/ledger.py chat --ledger-dir ~/expense-ledger-data
+```
+
 Regenerate reports:
 
 ```bash
@@ -73,12 +88,11 @@ python3 scripts/ledger.py report --ledger-dir ~/expense-ledger-data
 Treat an entry as a possible duplicate when:
 
 - `date` matches
-- `time` matches
 - `amount` matches
 
 If this happens, pause and double check with the user. The script will refuse to write unless `--force` is passed.
 
-This rule is intentionally conservative and easy to explain.
+This rule is intentionally conservative and easy to explain. The ledger is day-based by default, so precise time is optional rather than required.
 
 ## Categorization
 
@@ -99,7 +113,7 @@ Default categories include:
 - income
 - other
 
-The script classifies by keywords first. If confidence is weak, it falls back to `other`.
+The script classifies by keywords first in both English and Chinese. If confidence is weak, it falls back to `other`.
 
 Read [category-rules.md](./references/category-rules.md) when adjusting or extending classification behavior.
 
@@ -117,11 +131,18 @@ After every successful insertion, keep the ledger updated by regenerating:
 
 When the user gives a new expense in plain language:
 
-1. Parse the date, time, description, and amount.
+1. Parse the date, description, and amount.
 2. Infer the category unless the user explicitly states one.
 3. Check for duplicates before writing.
 4. Insert into `transactions.csv`.
 5. Regenerate `dashboard.md` and `dashboard.html`.
+
+When the user wants a conversational Chinese workflow:
+
+1. Start `scripts/ledger.py chat`.
+2. Let the user keep entering lines such as `今天咖啡 18`, `昨天地铁 4`, or `3月18日晚上聚餐 86元`.
+3. Confirm duplicates before inserting when same-day and same-amount entries match.
+4. Stop when the user enters `quit`, `exit`, `q`, or an empty line.
 
 When the user asks to review spending:
 

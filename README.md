@@ -93,10 +93,11 @@ Path: `skills/readme-styler/`
 
 This skill is built for ongoing personal bookkeeping rather than one-off notes. It helps:
 
-- record expenses from natural-language input
+- record expenses from natural-language input in English or Chinese
 - auto-classify entries into common spending categories
 - detect likely duplicate bills before writing
 - keep entries organized by day without losing a single source of truth
+- support an interactive bookkeeping mode where you start the skill and then enter bills one by one
 - generate readable Markdown and HTML dashboards with common summary charts
 
 Path: `skills/expense-ledger/`

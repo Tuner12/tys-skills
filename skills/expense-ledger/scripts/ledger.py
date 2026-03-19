@@ -6,7 +6,7 @@ import json
 import os
 import re
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 
@@ -22,19 +22,58 @@ COLUMNS = [
 
 
 CATEGORY_KEYWORDS = {
-    "food": ["lunch", "dinner", "breakfast", "coffee", "tea", "snack", "grocer", "meal", "restaurant", "milk", "fruit", "food"],
-    "transport": ["uber", "lyft", "taxi", "metro", "bus", "train", "gas", "parking", "toll", "transport"],
-    "shopping": ["shopping", "buy", "bought", "clothes", "shirt", "shoes", "household", "amazon"],
-    "entertainment": ["movie", "cinema", "game", "concert", "karaoke", "entertainment"],
-    "bills": ["bill", "utility", "electric", "water", "internet", "phone", "insurance"],
-    "housing": ["rent", "furniture", "repair", "maintenance", "apartment"],
-    "medical": ["medicine", "medication", "clinic", "hospital", "doctor", "pharmacy", "drug"],
-    "education": ["tuition", "course", "class", "book", "education", "exam"],
-    "travel": ["flight", "hotel", "trip", "travel", "airbnb", "booking"],
-    "subscription": ["subscription", "monthly", "annual", "netflix", "spotify", "membership"],
-    "gift": ["gift", "donation", "hongbao", "red envelope", "present"],
-    "digital": ["openai", "chatgpt", "claude", "cursor", "github", "domain", "server", "cloud", "vps", "software", "saas"],
-    "income": ["salary", "refund", "reimbursement", "bonus", "income", "paid back"],
+    "food": [
+        "lunch", "dinner", "breakfast", "coffee", "tea", "snack", "grocer", "meal", "restaurant", "milk", "fruit", "food",
+        "午饭", "晚饭", "早餐", "早饭", "宵夜", "奶茶", "咖啡", "吃饭", "聚餐", "外卖", "水果", "超市", "买菜", "餐厅", "火锅"
+    ],
+    "transport": [
+        "uber", "lyft", "taxi", "metro", "bus", "train", "gas", "parking", "toll", "transport",
+        "打车", "地铁", "公交", "高铁", "火车", "停车", "油费", "过路费", "车费", "滴滴"
+    ],
+    "shopping": [
+        "shopping", "buy", "bought", "clothes", "shirt", "shoes", "household", "amazon",
+        "购物", "买了", "衣服", "鞋", "日用品", "淘宝", "京东", "拼多多"
+    ],
+    "entertainment": [
+        "movie", "cinema", "game", "concert", "karaoke", "entertainment",
+        "电影", "游戏", "演唱会", "ktv", "娱乐", "桌游"
+    ],
+    "bills": [
+        "bill", "utility", "electric", "water", "internet", "phone", "insurance",
+        "电费", "水费", "网费", "话费", "保险", "账单"
+    ],
+    "housing": [
+        "rent", "furniture", "repair", "maintenance", "apartment",
+        "房租", "家具", "维修", "住宿", "公寓"
+    ],
+    "medical": [
+        "medicine", "medication", "clinic", "hospital", "doctor", "pharmacy", "drug",
+        "药", "买药", "医院", "门诊", "诊所", "挂号", "体检"
+    ],
+    "education": [
+        "tuition", "course", "class", "book", "education", "exam",
+        "学费", "课程", "教材", "书", "考试", "报名费"
+    ],
+    "travel": [
+        "flight", "hotel", "trip", "travel", "airbnb", "booking",
+        "机票", "酒店", "民宿", "旅行", "旅游"
+    ],
+    "subscription": [
+        "subscription", "monthly", "annual", "netflix", "spotify", "membership",
+        "订阅", "会员", "月费", "年费", "自动续费"
+    ],
+    "gift": [
+        "gift", "donation", "hongbao", "red envelope", "present",
+        "礼物", "红包", "随礼", "捐款"
+    ],
+    "digital": [
+        "openai", "chatgpt", "claude", "cursor", "github", "domain", "server", "cloud", "vps", "software", "saas",
+        "域名", "服务器", "云服务", "软件", "会员服务", "ai"
+    ],
+    "income": [
+        "salary", "refund", "reimbursement", "bonus", "income", "paid back",
+        "工资", "退款", "报销", "奖金", "收入", "收款", "到账"
+    ],
 }
 
 
@@ -48,31 +87,140 @@ def ensure_ledger(ledger_dir: Path) -> Path:
     return csv_path
 
 
+def now_local() -> datetime:
+    return datetime.now()
+
+
+def parse_relative_date(text: str, base: datetime) -> tuple[str | None, str]:
+    date_value = None
+    cleaned = text
+    if "今天" in cleaned:
+        date_value = base
+        cleaned = cleaned.replace("今天", " ")
+    elif "昨天" in cleaned:
+        date_value = base - timedelta(days=1)
+        cleaned = cleaned.replace("昨天", " ")
+    elif "前天" in cleaned:
+        date_value = base - timedelta(days=2)
+        cleaned = cleaned.replace("前天", " ")
+    elif "明天" in cleaned:
+        date_value = base + timedelta(days=1)
+        cleaned = cleaned.replace("明天", " ")
+    return (date_value.strftime("%Y-%m-%d") if date_value else None, cleaned)
+
+
+def parse_explicit_date(text: str, base: datetime) -> tuple[str | None, str]:
+    cleaned = text
+    patterns = [
+        (r"\b(\d{4})[-/](\d{1,2})[-/](\d{1,2})\b", True),
+        (r"\b(\d{1,2})[-/](\d{1,2})\b", False),
+        (r"(\d{1,2})月(\d{1,2})日", False),
+    ]
+    for pattern, has_year in patterns:
+        match = re.search(pattern, cleaned)
+        if not match:
+            continue
+        if has_year:
+            year, month, day = map(int, match.groups())
+        else:
+            month, day = map(int, match.groups())
+            year = base.year
+        date_value = datetime(year, month, day).strftime("%Y-%m-%d")
+        cleaned = cleaned.replace(match.group(0), " ", 1)
+        return date_value, cleaned
+    return None, cleaned
+
+
+def parse_time_text(text: str) -> tuple[str, str]:
+    cleaned = text
+    hhmm = re.search(r"\b(\d{1,2}):(\d{2})\b", cleaned)
+    if hhmm:
+        hour = int(hhmm.group(1))
+        minute = int(hhmm.group(2))
+        prefix_match = re.search(r"(凌晨|早上|上午|中午|下午|晚上|傍晚)\s*$", cleaned[:hhmm.start()])
+        if prefix_match:
+            prefix = prefix_match.group(1)
+            if prefix in {"下午", "晚上", "傍晚"} and hour < 12:
+                hour += 12
+            if prefix == "中午" and hour < 11:
+                hour += 12
+        time_value = f"{hour:02d}:{minute:02d}"
+        cleaned = cleaned.replace(hhmm.group(0), " ", 1)
+        return normalize_time(time_value), cleaned
+
+    chinese_time = re.search(r"(凌晨|早上|上午|中午|下午|晚上|傍晚)?\s*(\d{1,2})点(?:(\d{1,2})分?)?", cleaned)
+    if chinese_time:
+        prefix, hour_text, minute_text = chinese_time.groups()
+        hour = int(hour_text)
+        minute = int(minute_text or 0)
+        if prefix in {"下午", "晚上", "傍晚"} and hour < 12:
+            hour += 12
+        if prefix == "中午" and hour < 11:
+            hour += 12
+        time_value = f"{hour:02d}:{minute:02d}"
+        cleaned = cleaned.replace(chinese_time.group(0), " ", 1)
+        return normalize_time(time_value), cleaned
+
+    cleaned = re.sub(r"(凌晨|早上|上午|中午|下午|晚上|傍晚)", " ", cleaned)
+    return "", cleaned
+
+
+def parse_amount_text(text: str) -> tuple[str, str]:
+    cleaned = text
+    currency_patterns = [
+        r"(?:¥|￥|rmb\s*)?(\d+(?:\.\d{1,2})?)\s*(?:元|块钱|块)",
+        r"\$(\d+(?:\.\d{1,2})?)",
+    ]
+    for pattern in currency_patterns:
+        matches = list(re.finditer(pattern, cleaned, flags=re.IGNORECASE))
+        if matches:
+            match = matches[-1]
+            amount_value = normalize_amount(match.group(1))
+            cleaned = cleaned[:match.start()] + " " + cleaned[match.end():]
+            return amount_value, cleaned
+
+    amount_matches = list(re.finditer(r"(?<!\d)(\d+(?:\.\d{1,2})?)(?!\d)", cleaned))
+    if amount_matches:
+        match = amount_matches[-1]
+        amount_value = normalize_amount(match.group(1))
+        cleaned = cleaned[:match.start()] + " " + cleaned[match.end():]
+        return amount_value, cleaned
+    raise ValueError("entry must contain an amount")
+
+
+def cleanup_description(text: str) -> str:
+    cleaned = text
+    cleaned = re.sub(r"(花了|花费|花|用了|买了|买|消费了|消费|支出|付了|付款|记账|记一下|记一笔|帮我记|收入|报销到账|报销|退款到账|退款)", " ", cleaned)
+    cleaned = re.sub(r"(凌晨|早上|上午|中午|下午|晚上|傍晚)", " ", cleaned)
+    cleaned = re.sub(r"\s+", " ", cleaned).strip(" ,.-，。")
+    return cleaned or "unspecified expense"
+
+
 def parse_entry_text(entry: str) -> dict:
-    date_match = re.search(r"\b(\d{4}-\d{2}-\d{2})\b", entry)
-    time_match = re.search(r"\b(\d{1,2}:\d{2})\b", entry)
-    amount_matches = re.findall(r"(?<!\d)(\d+(?:\.\d{1,2})?)(?!\d)", entry)
-    if not date_match or not amount_matches:
-        raise ValueError("entry must contain at least a YYYY-MM-DD date and an amount")
+    base = now_local()
+    cleaned = entry.strip()
 
-    date_value = date_match.group(1)
-    time_value = time_match.group(1) if time_match else "00:00"
-    amount_value = amount_matches[-1]
+    date_value, cleaned = parse_relative_date(cleaned, base)
+    if not date_value:
+        explicit_date, cleaned = parse_explicit_date(cleaned, base)
+        date_value = explicit_date
+    if not date_value:
+        iso_match = re.search(r"\b(\d{4}-\d{2}-\d{2})\b", entry)
+        if iso_match:
+            date_value = normalize_date(iso_match.group(1))
+            cleaned = cleaned.replace(iso_match.group(1), " ", 1)
+    if not date_value:
+        date_value = base.strftime("%Y-%m-%d")
 
-    cleaned = entry
-    cleaned = cleaned.replace(date_value, "", 1)
-    if time_match:
-        cleaned = cleaned.replace(time_value, "", 1)
-    cleaned = re.sub(rf"{re.escape(amount_value)}(?!.*{re.escape(amount_value)})", "", cleaned, count=1).strip()
-    cleaned = re.sub(r"\s+", " ", cleaned).strip(" ,-")
-    if not cleaned:
-        cleaned = "unspecified expense"
+    time_value, cleaned = parse_time_text(cleaned)
+    amount_value, cleaned = parse_amount_text(cleaned)
+    description = cleanup_description(cleaned)
 
     return {
         "date": normalize_date(date_value),
         "time": normalize_time(time_value),
-        "description": cleaned,
-        "amount": normalize_amount(amount_value),
+        "description": description,
+        "amount": amount_value,
         "source_text": entry,
     }
 
@@ -82,6 +230,8 @@ def normalize_date(value: str) -> str:
 
 
 def normalize_time(value: str) -> str:
+    if not value:
+        return ""
     return datetime.strptime(value, "%H:%M").strftime("%H:%M")
 
 
@@ -94,7 +244,7 @@ def classify(description: str) -> str:
     scores = defaultdict(int)
     for category, words in CATEGORY_KEYWORDS.items():
         for word in words:
-            if word in text:
+            if word.lower() in text:
                 scores[category] += 1
     if not scores:
         return "other"
@@ -115,7 +265,7 @@ def save_row(csv_path: Path, row: dict) -> None:
 def detect_duplicate(rows: list[dict], date: str, time: str, amount: str) -> list[dict]:
     return [
         row for row in rows
-        if row["date"] == date and row["time"] == time and row["amount"] == amount
+        if row["date"] == date and row["amount"] == amount
     ]
 
 
@@ -191,7 +341,7 @@ def render_markdown(ledger_dir: Path, rows: list[dict]) -> None:
         lines.append("| --- | --- | --- | ---: |")
         for item in sorted(items, key=lambda row: row["time"]):
             lines.append(
-                f"| {item['time']} | {item['description']} | {item['category']} | {float(item['amount']):.2f} |"
+                f"| {item['time'] or '-'} | {item['description']} | {item['category']} | {float(item['amount']):.2f} |"
             )
         lines.append("")
 
@@ -209,7 +359,7 @@ def render_html(ledger_dir: Path, rows: list[dict]) -> None:
     day_cards = []
     for day, items in grouped.items():
         rows_html = "".join(
-            f"<tr><td>{html.escape(item['time'])}</td><td>{html.escape(item['description'])}</td><td>{html.escape(item['category'])}</td><td>{float(item['amount']):.2f}</td></tr>"
+            f"<tr><td>{html.escape(item['time'] or '-')}</td><td>{html.escape(item['description'])}</td><td>{html.escape(item['category'])}</td><td>{float(item['amount']):.2f}</td></tr>"
             for item in sorted(items, key=lambda row: row["time"])
         )
         day_cards.append(
@@ -340,6 +490,28 @@ def build_row(args: argparse.Namespace) -> dict:
     return row
 
 
+def add_row_to_ledger(ledger_dir: Path, row: dict, force: bool = False, interactive: bool = False) -> int:
+    csv_path = ensure_ledger(ledger_dir)
+    rows = load_rows(csv_path)
+    duplicates = detect_duplicate(rows, row["date"], row["time"], row["amount"])
+    if duplicates and not force:
+        print("DUPLICATE_DETECTED")
+        print(json.dumps(duplicates, ensure_ascii=False, indent=2))
+        if interactive:
+            answer = input("发现同一天金额相同的疑似重复账单，仍然写入吗？输入 yes 确认: ").strip().lower()
+            if answer not in {"y", "yes"}:
+                print("Skipped.")
+                return 2
+        else:
+            return 2
+    save_row(csv_path, row)
+    rows = load_rows(csv_path)
+    render_markdown(ledger_dir, rows)
+    render_html(ledger_dir, rows)
+    print(json.dumps({"status": "added", "row": row}, ensure_ascii=False))
+    return 0
+
+
 def do_init(args: argparse.Namespace) -> int:
     ledger_dir = Path(os.path.expanduser(args.ledger_dir))
     ensure_ledger(ledger_dir)
@@ -351,19 +523,33 @@ def do_init(args: argparse.Namespace) -> int:
 
 def do_add(args: argparse.Namespace) -> int:
     ledger_dir = Path(os.path.expanduser(args.ledger_dir))
-    csv_path = ensure_ledger(ledger_dir)
-    rows = load_rows(csv_path)
     row = build_row(args)
-    duplicates = detect_duplicate(rows, row["date"], row["time"], row["amount"])
-    if duplicates and not args.force:
-        print("DUPLICATE_DETECTED")
-        print(json.dumps(duplicates, ensure_ascii=False, indent=2))
-        return 2
-    save_row(csv_path, row)
-    rows = load_rows(csv_path)
-    render_markdown(ledger_dir, rows)
-    render_html(ledger_dir, rows)
-    print(json.dumps({"status": "added", "row": row}, ensure_ascii=False))
+    return add_row_to_ledger(ledger_dir, row, force=args.force)
+
+
+def do_chat(args: argparse.Namespace) -> int:
+    ledger_dir = Path(os.path.expanduser(args.ledger_dir))
+    ensure_ledger(ledger_dir)
+    print("记账模式已启动。直接输入账单，例如：今天午饭 25元 / 昨天晚上打车 18.5 / 2026-03-18 咖啡 4.5")
+    print("输入 empty 或 quit 退出。")
+    while True:
+        try:
+            line = input("> ").strip()
+        except EOFError:
+            break
+        if not line or line.lower() in {"quit", "exit", "q"}:
+            break
+        try:
+            parsed = parse_entry_text(line)
+            row = {
+                **parsed,
+                "category": classify(parsed["description"]),
+                "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            }
+            add_row_to_ledger(ledger_dir, row, interactive=True)
+        except Exception as exc:
+            print(f"无法识别这条账单: {exc}")
+    print(f"Ledger updated in {ledger_dir}")
     return 0
 
 
@@ -395,6 +581,10 @@ def main() -> int:
     add_parser.add_argument("--category")
     add_parser.add_argument("--force", action="store_true")
     add_parser.set_defaults(func=do_add)
+
+    chat_parser = subparsers.add_parser("chat")
+    chat_parser.add_argument("--ledger-dir", required=True)
+    chat_parser.set_defaults(func=do_chat)
 
     report_parser = subparsers.add_parser("report")
     report_parser.add_argument("--ledger-dir", required=True)
