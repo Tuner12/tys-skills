@@ -1,6 +1,6 @@
 ---
 name: expense-ledger
-description: "Track personal expenses and maintain a structured ledger with automatic categorization, duplicate detection, daily insertion, and dashboard generation. Use when Codex needs to: (1) record a new expense from natural-language text in English or Chinese, (2) handle Chinese bookkeeping requests such as '记账', '记一笔', '今天花了', '帮我记一下', '昨天买了', or '我花了多少钱', (3) update an existing expense ledger for a specific day, (4) classify spending into common categories automatically, (5) detect possible duplicate bills when the same day and amount both match, (6) run an interactive Chinese bookkeeping session where the user keeps entering bills one by one, or (7) generate readable Markdown and HTML summaries with common bookkeeping charts."
+description: "Track personal expenses and maintain a structured ledger with automatic categorization, duplicate detection, daily insertion, and dashboard generation. Use when Codex needs to: (1) record a new expense from natural-language text in English or Chinese, (2) handle Chinese bookkeeping requests such as '记账', '记一笔', '今天花了', '帮我记一下', '昨天买了', or '我花了多少钱', (3) update an existing expense ledger for a specific day, (4) classify spending into common categories automatically, (5) detect possible duplicate bills when the same day and amount both match, (6) run an interactive Chinese bookkeeping session where the user keeps entering bills one by one, (7) generate readable Markdown and HTML summaries with common bookkeeping charts, or (8) generate Chinese week/month spending summaries such as '本周' and '本月' with charts and short analysis."
 ---
 
 # Expense Ledger
@@ -33,6 +33,10 @@ Store the ledger in one folder, for example `~/expense-ledger-data/`, with these
 - `transactions.csv`
 - `dashboard.md`
 - `dashboard.html`
+- `week-summary-*.md`
+- `week-summary-*.html`
+- `month-summary-*.md`
+- `month-summary-*.html`
 
 This is easier to maintain than one file per day and still supports daily browsing because the dashboard groups entries by day.
 
@@ -83,6 +87,13 @@ Regenerate reports:
 python3 scripts/ledger.py report --ledger-dir ~/expense-ledger-data
 ```
 
+Generate a weekly or monthly summary:
+
+```bash
+python3 scripts/ledger.py summary --ledger-dir ~/expense-ledger-data --period 本周
+python3 scripts/ledger.py summary --ledger-dir ~/expense-ledger-data --period 本月
+```
+
 ## Duplicate Detection
 
 Treat an entry as a possible duplicate when:
@@ -127,6 +138,12 @@ After every successful insertion, keep the ledger updated by regenerating:
 - top spending days
 - charts in `dashboard.html`
 
+When the user asks for weekly or monthly review, also generate:
+
+- a short terminal summary
+- a Markdown summary file
+- an HTML summary file with period charts
+
 ## Working Style
 
 When the user gives a new expense in plain language:
@@ -149,6 +166,13 @@ When the user asks to review spending:
 1. Read the current ledger.
 2. Use the generated dashboard first.
 3. Summarize the most important trends rather than repeating every row.
+
+When the user asks for `本周` or `本月` summary:
+
+1. Run `scripts/ledger.py summary`.
+2. Print a short summary directly in the terminal.
+3. Generate the corresponding Markdown and HTML files.
+4. Highlight total spend, largest category, top spending day, and a few large expenses.
 
 ## Boundaries
 

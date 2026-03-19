@@ -60,7 +60,7 @@ tys-skills/
 | Skill | Purpose | Status |
 | --- | --- | --- |
 | `proposal-humanize` | Rewrites business proposals using a reference proposal's structure, tone, and persuasive flow while removing generic AI-style phrasing | Active |
-| `expense-ledger` | Maintains a categorized expense ledger with duplicate checks and auto-generated Markdown and HTML dashboards | Active |
+| `expense-ledger` | Maintains a categorized expense ledger with duplicate checks, Chinese natural input, and auto-generated week/month dashboards | Active |
 | `readme-styler` | Designs polished GitHub README files with stronger hierarchy, visuals, badges, and repository storytelling | Active |
 
 ## Featured Skill
@@ -99,6 +99,7 @@ This skill is built for ongoing personal bookkeeping rather than one-off notes. 
 - keep entries organized by day without losing a single source of truth
 - support an interactive bookkeeping mode where you start the skill and then enter bills one by one
 - generate readable Markdown and HTML dashboards with common summary charts
+- generate weekly and monthly spending summaries with charts and short analysis
 
 Path: `skills/expense-ledger/`
 

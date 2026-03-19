@@ -91,6 +91,20 @@ def now_local() -> datetime:
     return datetime.now()
 
 
+def normalize_date(value: str) -> str:
+    return datetime.strptime(value, "%Y-%m-%d").strftime("%Y-%m-%d")
+
+
+def normalize_time(value: str) -> str:
+    if not value:
+        return ""
+    return datetime.strptime(value, "%H:%M").strftime("%H:%M")
+
+
+def normalize_amount(value: str) -> str:
+    return f"{float(value):.2f}"
+
+
 def parse_relative_date(text: str, base: datetime) -> tuple[str | None, str]:
     date_value = None
     cleaned = text
@@ -225,20 +239,6 @@ def parse_entry_text(entry: str) -> dict:
     }
 
 
-def normalize_date(value: str) -> str:
-    return datetime.strptime(value, "%Y-%m-%d").strftime("%Y-%m-%d")
-
-
-def normalize_time(value: str) -> str:
-    if not value:
-        return ""
-    return datetime.strptime(value, "%H:%M").strftime("%H:%M")
-
-
-def normalize_amount(value: str) -> str:
-    return f"{float(value):.2f}"
-
-
 def classify(description: str) -> str:
     text = description.lower()
     scores = defaultdict(int)
@@ -263,10 +263,7 @@ def save_row(csv_path: Path, row: dict) -> None:
 
 
 def detect_duplicate(rows: list[dict], date: str, time: str, amount: str) -> list[dict]:
-    return [
-        row for row in rows
-        if row["date"] == date and row["amount"] == amount
-    ]
+    return [row for row in rows if row["date"] == date and row["amount"] == amount]
 
 
 def group_by_date(rows: list[dict]) -> dict[str, list[dict]]:
@@ -340,38 +337,19 @@ def render_markdown(ledger_dir: Path, rows: list[dict]) -> None:
         lines.append("| Time | Description | Category | Amount |")
         lines.append("| --- | --- | --- | ---: |")
         for item in sorted(items, key=lambda row: row["time"]):
-            lines.append(
-                f"| {item['time'] or '-'} | {item['description']} | {item['category']} | {float(item['amount']):.2f} |"
-            )
+            lines.append(f"| {item['time'] or '-'} | {item['description']} | {item['category']} | {float(item['amount']):.2f} |")
         lines.append("")
 
     (ledger_dir / "dashboard.md").write_text("\n".join(lines), encoding="utf-8")
 
 
-def render_html(ledger_dir: Path, rows: list[dict]) -> None:
-    by_category = total_by(rows, "category")
-    by_month = total_by_month(rows)
-    grouped = group_by_date(rows)
-
-    category_json = json.dumps(by_category)
-    month_json = json.dumps(by_month)
-
-    day_cards = []
-    for day, items in grouped.items():
-        rows_html = "".join(
-            f"<tr><td>{html.escape(item['time'] or '-')}</td><td>{html.escape(item['description'])}</td><td>{html.escape(item['category'])}</td><td>{float(item['amount']):.2f}</td></tr>"
-            for item in sorted(items, key=lambda row: row["time"])
-        )
-        day_cards.append(
-            f"<section class='day-card'><h3>{html.escape(day)}</h3><table><thead><tr><th>Time</th><th>Description</th><th>Category</th><th>Amount</th></tr></thead><tbody>{rows_html}</tbody></table></section>"
-        )
-
-    html_text = f"""<!DOCTYPE html>
-<html lang="en">
+def html_shell(title: str, intro: str, sections: str, script: str = "") -> str:
+    return f"""<!DOCTYPE html>
+<html lang="zh-CN">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Expense Dashboard</title>
+  <title>{html.escape(title)}</title>
   <style>
     :root {{
       --bg: #f6f3ee;
@@ -384,20 +362,19 @@ def render_html(ledger_dir: Path, rows: list[dict]) -> None:
     }}
     * {{ box-sizing: border-box; }}
     body {{ margin: 0; font-family: Georgia, 'Times New Roman', serif; color: var(--ink); background: linear-gradient(180deg, #f4efe8 0%, #f8f6f1 100%); }}
-    .wrap {{ max-width: 1080px; margin: 0 auto; padding: 32px 20px 64px; }}
-    .hero {{ background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 28px; box-shadow: 0 12px 30px rgba(31,41,55,0.05); }}
+    .wrap {{ max-width: 1120px; margin: 0 auto; padding: 32px 20px 64px; }}
+    .hero, .card {{ background: var(--card); border: 1px solid var(--line); border-radius: 24px; box-shadow: 0 12px 30px rgba(31,41,55,0.05); }}
+    .hero {{ padding: 28px; }}
+    .grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; margin-top: 20px; }}
+    .card {{ padding: 20px; }}
     h1, h2, h3 {{ margin: 0 0 12px; }}
-    p {{ color: var(--muted); }}
-    .grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; margin-top: 20px; }}
-    .card {{ background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 20px; }}
+    p, li {{ color: var(--muted); }}
     .bar-row {{ display: grid; grid-template-columns: 120px 1fr 72px; gap: 10px; align-items: center; margin: 10px 0; }}
     .bar {{ height: 12px; border-radius: 999px; background: #ece4d8; overflow: hidden; }}
-    .fill {{ height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); }}
-    .pie-wrap {{ display: flex; justify-content: center; align-items: center; min-height: 300px; }}
+    .fill {{ height: 100%; border-radius: 999px; }}
     table {{ width: 100%; border-collapse: collapse; font-size: 14px; }}
     th, td {{ text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); }}
-    .day-card {{ background: rgba(255,250,243,0.9); border: 1px solid var(--line); border-radius: 20px; padding: 18px; margin-top: 18px; }}
-    .section-title {{ margin-top: 28px; }}
+    .pie-wrap {{ display: flex; justify-content: center; align-items: center; min-height: 280px; }}
     @media (max-width: 640px) {{
       .bar-row {{ grid-template-columns: 1fr; }}
     }}
@@ -406,70 +383,88 @@ def render_html(ledger_dir: Path, rows: list[dict]) -> None:
 <body>
   <div class="wrap">
     <section class="hero">
-      <h1>Expense Dashboard</h1>
-      <p>Auto-generated from transactions.csv. The ledger stays structured in CSV and readable in this dashboard.</p>
+      <h1>{html.escape(title)}</h1>
+      <p>{html.escape(intro)}</p>
     </section>
-    <div class="grid">
-      <section class="card">
-        <h2>Category Spend</h2>
-        <div id="category-bars"></div>
-      </section>
-      <section class="card">
-        <h2>Monthly Spend</h2>
-        <div id="month-bars"></div>
-      </section>
-      <section class="card">
-        <h2>Category Share</h2>
-        <div class="pie-wrap"><svg id="pie" width="260" height="260" viewBox="0 0 260 260"></svg></div>
-      </section>
-    </div>
-    <h2 class="section-title">Daily Entries</h2>
-    {''.join(day_cards)}
+    {sections}
   </div>
-  <script>
-    const categoryData = {category_json};
-    const monthData = {month_json};
-    const palette = ['#0f766e', '#d97706', '#7c3aed', '#2563eb', '#be123c', '#0891b2', '#65a30d', '#9333ea'];
-
-    function renderBars(targetId, data) {{
-      const max = Math.max(...data.map(item => item[1]), 1);
-      const root = document.getElementById(targetId);
-      root.innerHTML = data.map(([label, value], idx) => `
-        <div class="bar-row">
-          <div>${{label}}</div>
-          <div class="bar"><div class="fill" style="width:${{(value / max) * 100}}%; background:${{palette[idx % palette.length]}};"></div></div>
-          <div>${{value.toFixed(2)}}</div>
-        </div>
-      `).join('');
-    }}
-
-    function renderPie(targetId, data) {{
-      const total = data.reduce((sum, item) => sum + item[1], 0) || 1;
-      const svg = document.getElementById(targetId);
-      const cx = 130, cy = 130, r = 90;
-      let start = 0;
-      let slices = '';
-      data.forEach(([label, value], idx) => {{
-        const angle = (value / total) * Math.PI * 2;
-        const end = start + angle;
-        const x1 = cx + r * Math.cos(start - Math.PI / 2);
-        const y1 = cy + r * Math.sin(start - Math.PI / 2);
-        const x2 = cx + r * Math.cos(end - Math.PI / 2);
-        const y2 = cy + r * Math.sin(end - Math.PI / 2);
-        const large = angle > Math.PI ? 1 : 0;
-        slices += `<path d="M ${{cx}} ${{cy}} L ${{x1}} ${{y1}} A ${{r}} ${{r}} 0 ${{large}} 1 ${{x2}} ${{y2}} Z" fill="${{palette[idx % palette.length]}}"></path>`;
-        start = end;
-      }});
-      svg.innerHTML = slices + '<circle cx="130" cy="130" r="46" fill="#fffaf3"></circle>';
-    }}
-
-    renderBars('category-bars', categoryData);
-    renderBars('month-bars', monthData);
-    renderPie('pie', categoryData);
-  </script>
+  {script}
 </body>
 </html>"""
-    (ledger_dir / "dashboard.html").write_text(html_text, encoding="utf-8")
+
+
+def render_dashboard_html(ledger_dir: Path, rows: list[dict]) -> None:
+    by_category = total_by(rows, "category")
+    by_month = total_by_month(rows)
+    grouped = group_by_date(rows)
+    category_json = json.dumps(by_category)
+    month_json = json.dumps(by_month)
+
+    day_cards = []
+    for day, items in grouped.items():
+        rows_html = "".join(
+            f"<tr><td>{html.escape(item['time'] or '-')}</td><td>{html.escape(item['description'])}</td><td>{html.escape(item['category'])}</td><td>{float(item['amount']):.2f}</td></tr>"
+            for item in sorted(items, key=lambda row: row["time"])
+        )
+        day_cards.append(
+            f"<section class='card'><h3>{html.escape(day)}</h3><table><thead><tr><th>Time</th><th>Description</th><th>Category</th><th>Amount</th></tr></thead><tbody>{rows_html}</tbody></table></section>"
+        )
+
+    sections = f"""
+    <div class="grid">
+      <section class="card"><h2>Category Spend</h2><div id="category-bars"></div></section>
+      <section class="card"><h2>Monthly Spend</h2><div id="month-bars"></div></section>
+      <section class="card"><h2>Category Share</h2><div class="pie-wrap"><svg id="pie" width="260" height="260" viewBox="0 0 260 260"></svg></div></section>
+    </div>
+    <h2 style="margin-top:28px;">Daily Entries</h2>
+    {' '.join(day_cards)}
+    """
+    script = f"""
+    <script>
+      const categoryData = {category_json};
+      const monthData = {month_json};
+      const palette = ['#0f766e', '#d97706', '#7c3aed', '#2563eb', '#be123c', '#0891b2', '#65a30d', '#9333ea'];
+      function renderBars(targetId, data) {{
+        const max = Math.max(...data.map(item => item[1]), 1);
+        const root = document.getElementById(targetId);
+        root.innerHTML = data.map(([label, value], idx) => `
+          <div class="bar-row">
+            <div>${{label}}</div>
+            <div class="bar"><div class="fill" style="width:${{(value / max) * 100}}%; background:${{palette[idx % palette.length]}};"></div></div>
+            <div>${{value.toFixed(2)}}</div>
+          </div>
+        `).join('');
+      }}
+      function renderPie(targetId, data) {{
+        const total = data.reduce((sum, item) => sum + item[1], 0) || 1;
+        const svg = document.getElementById(targetId);
+        const cx = 130, cy = 130, r = 90;
+        let start = 0;
+        let slices = '';
+        data.forEach(([label, value], idx) => {{
+          const angle = (value / total) * Math.PI * 2;
+          const end = start + angle;
+          const x1 = cx + r * Math.cos(start - Math.PI / 2);
+          const y1 = cy + r * Math.sin(start - Math.PI / 2);
+          const x2 = cx + r * Math.cos(end - Math.PI / 2);
+          const y2 = cy + r * Math.sin(end - Math.PI / 2);
+          const large = angle > Math.PI ? 1 : 0;
+          slices += `<path d="M ${{cx}} ${{cy}} L ${{x1}} ${{y1}} A ${{r}} ${{r}} 0 ${{large}} 1 ${{x2}} ${{y2}} Z" fill="${{palette[idx % palette.length]}}"></path>`;
+          start = end;
+        }});
+        svg.innerHTML = slices + '<circle cx="130" cy="130" r="46" fill="#fffaf3"></circle>';
+      }}
+      renderBars('category-bars', categoryData);
+      renderBars('month-bars', monthData);
+      renderPie('pie', categoryData);
+    </script>
+    """
+    (ledger_dir / "dashboard.html").write_text(html_shell("Expense Dashboard", "Auto-generated from transactions.csv. The ledger stays structured in CSV and readable in this dashboard.", sections, script), encoding="utf-8")
+
+
+def render_reports(ledger_dir: Path, rows: list[dict]) -> None:
+    render_markdown(ledger_dir, rows)
+    render_dashboard_html(ledger_dir, rows)
 
 
 def build_row(args: argparse.Namespace) -> dict:
@@ -480,7 +475,7 @@ def build_row(args: argparse.Namespace) -> dict:
             raise ValueError("structured input requires --date, --description, and --amount")
         row = {
             "date": normalize_date(args.date),
-            "time": normalize_time(args.time or "00:00"),
+            "time": normalize_time(args.time or ""),
             "description": args.description.strip(),
             "amount": normalize_amount(str(args.amount)),
             "source_text": args.entry or "",
@@ -506,17 +501,147 @@ def add_row_to_ledger(ledger_dir: Path, row: dict, force: bool = False, interact
             return 2
     save_row(csv_path, row)
     rows = load_rows(csv_path)
-    render_markdown(ledger_dir, rows)
-    render_html(ledger_dir, rows)
+    render_reports(ledger_dir, rows)
     print(json.dumps({"status": "added", "row": row}, ensure_ascii=False))
     return 0
+
+
+def period_bounds(period: str, base: datetime) -> tuple[str, datetime, datetime]:
+    if period in {"本周", "week", "this-week"}:
+        start = base - timedelta(days=base.weekday())
+        end = start + timedelta(days=6)
+        return "week", start.replace(hour=0, minute=0, second=0, microsecond=0), end.replace(hour=23, minute=59, second=59, microsecond=0)
+    if period in {"本月", "month", "this-month"}:
+        start = base.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        if start.month == 12:
+            next_month = start.replace(year=start.year + 1, month=1)
+        else:
+            next_month = start.replace(month=start.month + 1)
+        end = next_month - timedelta(seconds=1)
+        return "month", start, end
+    raise ValueError("period must be 本周 or 本月")
+
+
+def filter_rows_by_period(rows: list[dict], start: datetime, end: datetime) -> list[dict]:
+    result = []
+    for row in rows:
+        day = datetime.strptime(row["date"], "%Y-%m-%d")
+        if start.date() <= day.date() <= end.date():
+            result.append(row)
+    return result
+
+
+def summarize_rows(rows: list[dict], period_label: str) -> str:
+    total = sum(float(row["amount"]) for row in rows)
+    count = len(rows)
+    by_category = total_by(rows, "category")
+    top_category = by_category[0] if by_category else ("none", 0.0)
+    by_day = sorted(
+        ((day, sum(float(item["amount"]) for item in items)) for day, items in group_by_date(rows).items()),
+        key=lambda item: (-item[1], item[0]),
+    )
+    top_day = by_day[0] if by_day else ("none", 0.0)
+    largest = sorted(rows, key=lambda row: (-float(row["amount"]), row["date"]))[:3]
+    lines = [
+        f"{period_label}消费总结",
+        f"- 总支出: {total:.2f}",
+        f"- 记录笔数: {count}",
+        f"- 最大分类: {top_category[0]} ({top_category[1]:.2f})",
+        f"- 花费最高的一天: {top_day[0]} ({top_day[1]:.2f})",
+        "- 最大额支出:",
+    ]
+    for row in largest:
+        lines.append(f"  - {row['date']} {row['description']} {float(row['amount']):.2f} [{row['category']}]")
+    return "\n".join(lines)
+
+
+def render_period_summary(ledger_dir: Path, rows: list[dict], period_key: str, start: datetime, end: datetime) -> tuple[Path, Path]:
+    period_rows = filter_rows_by_period(rows, start, end)
+    label = "本周" if period_key == "week" else "本月"
+    category_data = total_by(period_rows, "category")
+    day_data = sorted(
+        ((day, sum(float(item["amount"]) for item in items)) for day, items in group_by_date(period_rows).items()),
+        key=lambda item: item[0],
+    )
+    top_rows = sorted(period_rows, key=lambda row: (-float(row["amount"]), row["date"]))[:10]
+    intro = f"{label}范围: {start.strftime('%Y-%m-%d')} 到 {end.strftime('%Y-%m-%d')}。共 {len(period_rows)} 笔记录。"
+
+    category_json = json.dumps(category_data)
+    day_json = json.dumps(day_data)
+
+    top_table = "".join(
+        f"<tr><td>{html.escape(row['date'])}</td><td>{html.escape(row['description'])}</td><td>{html.escape(row['category'])}</td><td>{float(row['amount']):.2f}</td></tr>"
+        for row in top_rows
+    )
+
+    sections = f"""
+    <div class="grid">
+      <section class="card"><h2>分类占比</h2><div class="pie-wrap"><svg id="pie" width="260" height="260" viewBox="0 0 260 260"></svg></div></section>
+      <section class="card"><h2>分类排行</h2><div id="category-bars"></div></section>
+      <section class="card"><h2>每日支出</h2><div id="day-bars"></div></section>
+    </div>
+    <section class="card" style="margin-top:20px;">
+      <h2>分析摘要</h2>
+      <pre style="white-space:pre-wrap;font-family:Georgia,'Times New Roman',serif;color:#6b7280;">{html.escape(summarize_rows(period_rows, label))}</pre>
+    </section>
+    <section class="card" style="margin-top:20px;">
+      <h2>大额支出</h2>
+      <table><thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Amount</th></tr></thead><tbody>{top_table}</tbody></table>
+    </section>
+    """
+    script = f"""
+    <script>
+      const categoryData = {category_json};
+      const dayData = {day_json};
+      const palette = ['#0f766e', '#d97706', '#7c3aed', '#2563eb', '#be123c', '#0891b2', '#65a30d', '#9333ea'];
+      function renderBars(targetId, data) {{
+        const max = Math.max(...data.map(item => item[1]), 1);
+        const root = document.getElementById(targetId);
+        root.innerHTML = data.map(([label, value], idx) => `
+          <div class="bar-row">
+            <div>${{label}}</div>
+            <div class="bar"><div class="fill" style="width:${{(value / max) * 100}}%; background:${{palette[idx % palette.length]}};"></div></div>
+            <div>${{value.toFixed(2)}}</div>
+          </div>
+        `).join('');
+      }}
+      function renderPie(targetId, data) {{
+        const total = data.reduce((sum, item) => sum + item[1], 0) || 1;
+        const svg = document.getElementById(targetId);
+        const cx = 130, cy = 130, r = 90;
+        let start = 0;
+        let slices = '';
+        data.forEach(([label, value], idx) => {{
+          const angle = (value / total) * Math.PI * 2;
+          const end = start + angle;
+          const x1 = cx + r * Math.cos(start - Math.PI / 2);
+          const y1 = cy + r * Math.sin(start - Math.PI / 2);
+          const x2 = cx + r * Math.cos(end - Math.PI / 2);
+          const y2 = cy + r * Math.sin(end - Math.PI / 2);
+          const large = angle > Math.PI ? 1 : 0;
+          slices += `<path d="M ${{cx}} ${{cy}} L ${{x1}} ${{y1}} A ${{r}} ${{r}} 0 ${{large}} 1 ${{x2}} ${{y2}} Z" fill="${{palette[idx % palette.length]}}"></path>`;
+          start = end;
+        }});
+        svg.innerHTML = slices + '<circle cx="130" cy="130" r="46" fill="#fffaf3"></circle>';
+      }}
+      renderBars('category-bars', categoryData);
+      renderBars('day-bars', dayData);
+      renderPie('pie', categoryData);
+    </script>
+    """
+
+    suffix = start.strftime("%Y-%m-%d") if period_key == "week" else start.strftime("%Y-%m")
+    html_path = ledger_dir / f"{period_key}-summary-{suffix}.html"
+    md_path = ledger_dir / f"{period_key}-summary-{suffix}.md"
+    html_path.write_text(html_shell(f"{label}消费总结", intro, sections, script), encoding="utf-8")
+    md_path.write_text(summarize_rows(period_rows, label), encoding="utf-8")
+    return md_path, html_path
 
 
 def do_init(args: argparse.Namespace) -> int:
     ledger_dir = Path(os.path.expanduser(args.ledger_dir))
     ensure_ledger(ledger_dir)
-    render_markdown(ledger_dir, [])
-    render_html(ledger_dir, [])
+    render_reports(ledger_dir, [])
     print(f"Initialized ledger at {ledger_dir}")
     return 0
 
@@ -530,7 +655,7 @@ def do_add(args: argparse.Namespace) -> int:
 def do_chat(args: argparse.Namespace) -> int:
     ledger_dir = Path(os.path.expanduser(args.ledger_dir))
     ensure_ledger(ledger_dir)
-    print("记账模式已启动。直接输入账单，例如：今天午饭 25元 / 昨天晚上打车 18.5 / 2026-03-18 咖啡 4.5")
+    print("记账模式已启动。直接输入账单，例如：今天午饭 25元 / 昨天打车 18.5 / 3月18日咖啡 4.5")
     print("输入 empty 或 quit 退出。")
     while True:
         try:
@@ -541,11 +666,7 @@ def do_chat(args: argparse.Namespace) -> int:
             break
         try:
             parsed = parse_entry_text(line)
-            row = {
-                **parsed,
-                "category": classify(parsed["description"]),
-                "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            }
+            row = {**parsed, "category": classify(parsed["description"]), "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
             add_row_to_ledger(ledger_dir, row, interactive=True)
         except Exception as exc:
             print(f"无法识别这条账单: {exc}")
@@ -557,9 +678,20 @@ def do_report(args: argparse.Namespace) -> int:
     ledger_dir = Path(os.path.expanduser(args.ledger_dir))
     csv_path = ensure_ledger(ledger_dir)
     rows = load_rows(csv_path)
-    render_markdown(ledger_dir, rows)
-    render_html(ledger_dir, rows)
+    render_reports(ledger_dir, rows)
     print(f"Generated reports in {ledger_dir}")
+    return 0
+
+
+def do_summary(args: argparse.Namespace) -> int:
+    ledger_dir = Path(os.path.expanduser(args.ledger_dir))
+    csv_path = ensure_ledger(ledger_dir)
+    rows = load_rows(csv_path)
+    period_key, start, end = period_bounds(args.period, now_local())
+    md_path, html_path = render_period_summary(ledger_dir, rows, period_key, start, end)
+    print(summarize_rows(filter_rows_by_period(rows, start, end), "本周" if period_key == "week" else "本月"))
+    print(f"\nMarkdown: {md_path}")
+    print(f"HTML: {html_path}")
     return 0
 
 
@@ -589,6 +721,11 @@ def main() -> int:
     report_parser = subparsers.add_parser("report")
     report_parser.add_argument("--ledger-dir", required=True)
     report_parser.set_defaults(func=do_report)
+
+    summary_parser = subparsers.add_parser("summary")
+    summary_parser.add_argument("--ledger-dir", required=True)
+    summary_parser.add_argument("--period", required=True)
+    summary_parser.set_defaults(func=do_summary)
 
     args = parser.parse_args()
     return args.func(args)
